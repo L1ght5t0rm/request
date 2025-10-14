@@ -23,8 +23,6 @@ post={
 
 try:
     _=post_file_path
-    with open(post_file_path,'rb') as f:
-        files={'file':(post_file_path,f)}
 except NameError:
     post_file_path=None
 except Exception as e:
@@ -42,7 +40,10 @@ def tget():
 
 def tpost():
     if post_file_path: x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers,files=files)
-    else: x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers)
+    else:
+        with open(post_file_path,'rb') as f:
+            files={'f':(post_file_path,f)}
+            x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers)
     print('\n\nResponse:\n',x.text)
     print('\n\nResponse Cookies:\n\t',x.cookies.get_dict())
     print('Response Headers:')
