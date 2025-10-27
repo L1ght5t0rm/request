@@ -26,7 +26,7 @@ try:
     _=post_file_path
     filename=__import__('os').path.basename(post_file_path)
     with open(post_file_path,'rb') as f:
-        files={'f':(filename,f)}
+        files={'f':(filename,f.read())}
 except NameError:
     post_file_path=None
 
