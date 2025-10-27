@@ -1,7 +1,7 @@
 import requests
 
 url=''
-#post_file_path='path/to/your/local/file'
+
 
 get={
     'key':'value',
@@ -19,14 +19,16 @@ post={
     'key':'value',
 }
 
+#file
 
-
+#post_file_path='path/to/your/local/file'
 try:
     _=post_file_path
+    filename=__import__('os').path.basename(post_file_path)
+    with open(post_file_path,'rb') as f:
+        files={'f':(filename,f)}
 except NameError:
     post_file_path=None
-except Exception as e:
-    print(e)
 
 
 
@@ -39,11 +41,10 @@ def tget():
     print(x.headers)
 
 def tpost():
-    if post_file_path: x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers,files=files)
+    if post_file_path:
+        x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers,files=files)
     else:
-        with open(post_file_path,'rb') as f:
-            files={'f':(post_file_path,f)}
-            x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers)
+        x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers)
     print('\n\nResponse:\n',x.text)
     print('\n\nResponse Cookies:\n\t',x.cookies.get_dict())
     print('Response Headers:')
