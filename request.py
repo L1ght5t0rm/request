@@ -1,7 +1,9 @@
-import requests
+#!/usr/bin/env python3
+import requests,re
 
 url=''
-
+pattern=r'<input type="hidden" name="token" value="([^"]+)"'
+# pattern=r"aa(.+?)aa"
 
 get={
     'key':'value',
@@ -13,13 +15,16 @@ cookies={
 
 headers={
     'key':'value',
+    # 'Content-Type':'application/json',
 }
 
 post={
     'key':'value',
 }
 
-#file
+json={
+    'key':'value',
+}
 
 #post_file_path='path/to/your/local/file'
 try:
@@ -29,32 +34,56 @@ try:
         files={'f':(filename,f.read())}
 except NameError:
     post_file_path=None
+    files=None
 
 
+def tget() -> 'Response':
+    response=requests.get(url,params=get,cookies=cookies,headers=headers)
+    return response
 
-def tget():
-    x=requests.get(url,params=get,cookies=cookies,headers=headers)
-    print('\n\nResponse:\n',x.text)
-    print('\n\nResponse Cookies:\n\t',x.cookies.get_dict())
-    print('\n\nResponse Headers:')
-    for header,value in x.headers.items(): print(f'\t{header}: {value}')
-    print(x.headers)
+def tpost(files=files) -> 'Response':
+    if files: response=requests.post(url,params=get,data=post,cookies=cookies,headers=headers,json=json,files=files)
+    else: response=requests.post(url,params=get,data=post,cookies=cookies,headers=headers,json=json)
+    return response
 
-def tpost():
-    if post_file_path:
-        x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers,files=files)
+def parse(response:'Response',debug=False) -> 'dict,str':
+    '''Return the response.json(dict) or response.text(str).'''
+    if debug:
+        detailed(response)
+    try:
+        return response.json()
+    except requests.exceptions.JSONDecodeError as e:
+        # Automatic analysis of encoding format for apparent_encoding.
+        return response.content.decode(response.apparent_encoding)
+
+def match(response:'Response'):
+    content=response.content.decode(response.apparent_encoding) # or use json
+    match=re.search(pattern,content)
+    if match:
+        return match.group(1)
     else:
-        x=requests.post(url,params=get,data=post,cookies=cookies,headers=headers)
-    print('\n\nResponse:\n',x.text)
-    print('\n\nResponse Cookies:\n\t',x.cookies.get_dict())
-    print('Response Headers:')
-    for header,value in x.headers.items(): print(f'{header}: {value}')
-    print(x.headers)
+        detailed(response)
+        raise ValueError('No match.')
 
-try: tget()
-except Exception as e: print(e)
+def detailed(response:'Response'):
+    '''Print Details.'''
+    try:
+        print(response.json())
+    except requests.exceptions.JSONDecodeError as e:
+        print('\nResponse:\n',response.content.decode(response.apparent_encoding))
+        print('\nResponse Cookies:\n\t',response.cookies.get_dict())
+        print('Response Headers:')
+        for header,value in response.headers.items(): print(f'\t{header}: {value}')
+
+# session=requests.Session()
+# session.get(url)
+# session.post(url,data)
+
+print(parse(tget(),debug=True))
 print('='*40)
-try: tpost()
-except Exception as e: print(e)
+print(parse(tpost()))
+
+
+
 
 
